@@ -76,6 +76,15 @@ ContinueLoop2:
         Result.AddWaterLine wl
     Next i
 
+    ' Parsing SheerLines
+    Dim sl As CurveSpline: Set sl = New CurveSpline
+    For j = 2 To MaxCol - 1
+        If matrix(MaxRow - 1, j) <> GInvalidValue Then
+            sl.AddXYZ matrix(MaxRow, j), matrix(MaxRow - 1, j), 0
+        End If
+    Next j
+    Result.AddSheerLine sl
+    
     ' Work done.
     Set ReadDataFromTxtFile = Result
 End Function

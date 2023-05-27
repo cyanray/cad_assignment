@@ -33,9 +33,10 @@ Sub Main()
     
     ShipOff.DrawHalfBreadthPlanGrid hbpBlockProxy
     ShipOff.DrawHalfBreadthPlanWaterLine hbpBlockProxy
-
+    
+    pt.XYZ 0, 0, 0
     Dim hbpRef As AcadBlockReference
-    Set hbpRef = ThisDrawing.ModelSpace.InsertBlock(GOrigin.ToArray(), GBlockName_HalfBreadthPlan, 1, 1, 1, 0)
+    Set hbpRef = ThisDrawing.ModelSpace.InsertBlock(pt.ToArray(), GBlockName_HalfBreadthPlan, 1, 1, 1, 0)
     hbpRef.Explode
     hbpRef.Delete
     hbpBlock.Delete
@@ -56,4 +57,5 @@ Sub Main()
     spBlock.Delete
     
 End Sub
+
 

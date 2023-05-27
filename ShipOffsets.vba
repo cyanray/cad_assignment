@@ -153,7 +153,36 @@ Public Sub DrawSheerPlanSheerLine(blockProxy As AcadBlockProxy)
     Dim i As Integer
     For i = 1 To m_SheerLines.Count
         Dim ln As AcadSpline
-        Set ln = blockProxy.AddSpline(m_SheerLines(i).Points, GOrigin, GOrigin)
+        ' Patch for parallel middle body
+        Dim slOrigin As CurveSpline: Set slOrigin = m_SheerLines(i)
+        ' Find the index of point that Y = 0
+        Dim Idx As Integer
+        For Idx = 1 To slOrigin.Points.Count
+            Dim pt As Point3: Set pt = slOrigin.Points.Item(Idx)
+            If pt.Y = 0 Then
+                Exit For
+            End If
+        Next Idx
+        ' If found
+        If Idx < slOrigin.Points.Count Then
+            Dim x1 As Double: x1 = slOrigin.Points.Item(Idx).X
+            Dim x2 As Double: x2 = slOrigin.Points.Item(Idx + 1).X
+            Dim step As Double: step = (x2 - x1) / 16
+            Dim sl As CurveSpline: Set sl = New CurveSpline
+            Dim j As Integer
+            For j = 1 To Idx
+                sl.Add slOrigin.Points.Item(j)
+            Next j
+            For j = 1 To 16
+                sl.AddXYZ x1 + j * step, 0, 0
+            Next j
+            For j = Idx + 1 To slOrigin.Points.Count
+                sl.Add slOrigin.Points.Item(j)
+            Next j
+            Set ln = blockProxy.AddSpline(sl.Points, GOrigin, GOrigin)
+        Else
+            Set ln = blockProxy.AddSpline(slOrigin.Points, GOrigin, GOrigin)
+        End If
         ln.color = acRed
     Next i
 End Sub
