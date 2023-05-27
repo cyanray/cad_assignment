@@ -8,7 +8,7 @@ Public GDrawing As New AcadBlockProxy
 ' GInvalidValue represents an invalid value
 Public Const GInvalidValue As Double = -1
 ' GInf represents infinity value
-Public Const GInf As Integer = 4096
+Public Const GInf As Double = 655350
 
 Public Const GBlockName_Temp As String = "LZY_TEMP"
 Public Const GBlockName_HalfBreadthPlan As String = "LZY_HalfBreadthPlan"

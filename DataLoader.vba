@@ -81,65 +81,53 @@ ContinueLoop2:
 End Function
 
 Sub GenerateSheerLinesFromWaterLines(ByRef offset As ShipOffsets)
-    Dim IdxWaterLine As Integer
-    Dim IdxSheerPlane As Integer
-
-    Dim tempBlock As AcadBlock
-    Set tempBlock = ThisDrawing.Blocks.Add(GOrigin.ToArray(), GBlockName_Temp)
-    Dim tempProxy As New AcadBlockProxy: Set tempProxy.Block = tempBlock
-
     ReDim Result(1 To offset.SheerPlanes.Count) As CurveSpline
     Dim i As Integer
     For i = LBound(Result) To UBound(Result)
         Set Result(i) = New CurveSpline
     Next i
 
-    For IdxWaterLine = 1 To offset.WaterLines.Count
-        Dim wl As AcadSpline
-        Set wl = tempProxy.AddSpline(offset.WaterLines(IdxWaterLine).Points, GOrigin, GOrigin)
-        For IdxSheerPlane = 1 To offset.SheerPlanes.Count
-            Dim sp As AcadLine
-            Set sp = tempProxy.AddLineXYZXYZ(-99999, offset.SheerPlanes(IdxSheerPlane), 0, 0, offset.SheerPlanes(IdxSheerPlane), 0)
-            Dim pointsArray
-            pointsArray = sp.IntersectWith(wl, acExtendNone)
-            Dim Points As Point3Collection: Set Points = New Point3Collection
-            Points.AddFromArray pointsArray
-            If Points.Count = 1 Then
-                Result(IdxSheerPlane).Add Points.Item(1)
-            End If
-            sp.Delete
-        Next IdxSheerPlane
-        wl.Delete
-    Next IdxWaterLine
-    ' for each item in result call reverse subroutine
+    IntersectWithWaterLines offset, Result, False
+
     Dim Item
     For Each Item In Result
         Item.Reverse
     Next Item
 
-        For IdxWaterLine = 1 To offset.WaterLines.Count
-        Dim wl2 As AcadSpline
-        Set wl2 = tempProxy.AddSpline(offset.WaterLines(IdxWaterLine).Points, GOrigin, GOrigin)
-        For IdxSheerPlane = 1 To offset.SheerPlanes.Count
-            Dim sp2 As AcadLine
-            Set sp2 = tempProxy.AddLineXYZXYZ(0, offset.SheerPlanes(IdxSheerPlane), 0, 99999, offset.SheerPlanes(IdxSheerPlane), 0)
-            Dim pointsArray2
-            pointsArray2 = sp2.IntersectWith(wl2, acExtendNone)
-            Dim Points2 As Point3Collection: Set Points2 = New Point3Collection
-            Points2.AddFromArray pointsArray2
-            If Points2.Count = 1 Then
-                Result(IdxSheerPlane).Add Points2.Item(1)
-            End If
-            sp2.Delete
-        Next IdxSheerPlane
-        wl2.Delete
-    Next IdxWaterLine
-
+    IntersectWithWaterLines offset, Result, True
 
     For i = LBound(Result) To UBound(Result)
         offset.AddSheerLine Result(i)
     Next i
 
-    tempBlock.Delete
 End Sub
 
+Sub IntersectWithWaterLines(ByRef offset As ShipOffsets, ByRef Result() As CurveSpline, Flag As Boolean)
+    Dim IdxWaterLine As Integer
+    Dim IdxSheerPlane As Integer
+    Dim tempBlock As AcadBlock
+    Set tempBlock = ThisDrawing.Blocks.Add(GOrigin.ToArray(), GBlockName_Temp)
+    Dim tempProxy As New AcadBlockProxy: Set tempProxy.Block = tempBlock
+        For IdxWaterLine = 1 To offset.WaterLines.Count
+        Dim wl As AcadSpline
+        Set wl = tempProxy.AddSpline(offset.WaterLines(IdxWaterLine).Points, GOrigin, GOrigin)
+        For IdxSheerPlane = 1 To offset.SheerPlanes.Count
+            Dim sp As AcadLine
+            If Flag Then
+                Set sp = tempProxy.AddLineXYZXYZ(0, offset.SheerPlanes(IdxSheerPlane), 0, GInf, offset.SheerPlanes(IdxSheerPlane), 0)
+            Else
+                Set sp = tempProxy.AddLineXYZXYZ(-GInf, offset.SheerPlanes(IdxSheerPlane), 0, 0, offset.SheerPlanes(IdxSheerPlane), 0)
+            End If
+            Dim pointsArray
+            pointsArray = sp.IntersectWith(wl, acExtendNone)
+            Dim Points As Point3Collection: Set Points = New Point3Collection
+            Points.AddFromArray pointsArray
+            If Points.Count = 1 And offset.WaterLines(IdxWaterLine).Argument <> GInvalidValue Then
+                Result(IdxSheerPlane).AddXYZ Points.Item(1).x, offset.WaterLines(IdxWaterLine).Argument, 0
+            End If
+            sp.Delete
+        Next IdxSheerPlane
+        wl.Delete
+    Next IdxWaterLine
+    tempBlock.Delete
+End Sub

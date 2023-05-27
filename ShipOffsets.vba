@@ -16,6 +16,8 @@ Private m_SheerPlane As Collection
 
 Private m_Breadth As Double
 
+Private m_Depth As Double
+
 Private m_HorizontalPadding As Double
 
 Private Sub Class_Initialize()
@@ -26,6 +28,7 @@ Private Sub Class_Initialize()
     Set m_WaterPlane = New Collection
     Set m_SheerPlane = New Collection
     m_Breadth = GInvalidValue
+    m_Depth = GInvalidValue
     HorizontalPadding = 0
 End Sub
 
@@ -39,6 +42,14 @@ End Property
 
 Public Property Let Breadth(ByVal Value As Double)
     m_Breadth = Value
+End Property
+
+Public Property Get Depth() As Double
+    Depth = m_Depth
+End Property
+
+Public Property Let Depth(ByVal Value As Double)
+    m_Depth = Value
 End Property
 
 Public Property Get HorizontalPadding() As Double
@@ -79,7 +90,7 @@ Public Sub AddStation(sta As Station)
     m_Stations.Add sta
 End Sub
 
-Public Sub AddStationByValue(staNumber As double, staOffset As Double)
+Public Sub AddStationByValue(staNumber As Double, staOffset As Double)
     ' TODO: Ensure the elements are sorted.
     Dim sta As New Station
     sta.StationNumber = staNumber
@@ -100,15 +111,14 @@ End Sub
 Public Sub DrawHalfBreadthPlanWaterLine(blockProxy As AcadBlockProxy)
     Dim i As Integer
     For i = 1 To m_WaterLines.Count
-        Dim wl As CurveSpline : Set wl = m_WaterLines(i)
         Dim ln As AcadSpline
-        Set ln = blockProxy.AddSpline(wl.Points, GOrigin, GOrigin)
+        Set ln = blockProxy.AddSpline(m_WaterLines(i).Points, GOrigin, GOrigin)
         ln.color = acCyan
     Next i
 End Sub
 
 Public Sub DrawHalfBreadthPlanGrid(blockProxy As AcadBlockProxy)
-    ' Throw exception if m_Breadth or m_LeftLength invalid
+    ' Throw exception if m_Breadth invalid
     If m_Breadth = GInvalidValue Then
         Err.Raise 10001, "ShipOffsets", "m_Breadth is invalid."
     End If
@@ -117,16 +127,16 @@ Public Sub DrawHalfBreadthPlanGrid(blockProxy As AcadBlockProxy)
     Dim staRightOffset As Double
     staLeftOffset = m_Stations(1).StationOffset
     staRightOffset = m_Stations(m_Stations.Count).StationOffset
-    Dim startLength As Double : startLength = staLeftOffset - m_HorizontalPadding
-    Dim endLength As Double : endLength = staRightOffset + m_HorizontalPadding
+    Dim startLength As Double: startLength = staLeftOffset - m_HorizontalPadding
+    Dim endLength As Double: endLength = staRightOffset + m_HorizontalPadding
 
     Dim i As Integer
     For i = 1 To m_Stations.Count
-        Dim sta As Station : Set sta = m_Stations(i)
+        Dim sta As Station: Set sta = m_Stations(i)
         blockProxy.AddLineXYZXYZ sta.StationOffset, 0, 0, sta.StationOffset, HalfBreadth, 0
     Next i
     For i = 1 To m_SheerPlane.Count
-        Dim sheerPlane As Double : sheerPlane = m_SheerPlane(i)
+        Dim sheerPlane As Double: sheerPlane = m_SheerPlane(i)
         If sheerPlane = 0 Or sheerPlane = HalfBreadth Then
             GoTo ContinueLoop
         End If
@@ -139,3 +149,43 @@ ContinueLoop:
     blockProxy.AddLineXYZXYZ startLength, HalfBreadth, 0, endLength, HalfBreadth, 0
 End Sub
 
+Public Sub DrawSheerPlanSheerLine(blockProxy As AcadBlockProxy)
+    Dim i As Integer
+    For i = 1 To m_SheerLines.Count
+        Dim ln As AcadSpline
+        Set ln = blockProxy.AddSpline(m_SheerLines(i).Points, GOrigin, GOrigin)
+        ln.color = acRed
+    Next i
+End Sub
+
+Public Sub DrawSheerPlanGrid(blockProxy As AcadBlockProxy)
+    ' Throw exception if m_Depth invalid
+    If m_Depth = GInvalidValue Then
+        Err.Raise 10001, "ShipOffsets", "m_Depth is invalid."
+    End If
+
+    Dim staLeftOffset As Double
+    Dim staRightOffset As Double
+    staLeftOffset = m_Stations(1).StationOffset
+    staRightOffset = m_Stations(m_Stations.Count).StationOffset
+    Dim startLength As Double: startLength = staLeftOffset - m_HorizontalPadding
+    Dim endLength As Double: endLength = staRightOffset + m_HorizontalPadding
+
+    Dim i As Integer
+    For i = 1 To m_Stations.Count
+        Dim sta As Station: Set sta = m_Stations(i)
+        blockProxy.AddLineXYZXYZ sta.StationOffset, 0, 0, sta.StationOffset, m_Depth, 0
+    Next i
+    For i = 1 To m_WaterPlane.Count
+        Dim waterPlane As Double: waterPlane = m_WaterPlane(i)
+        If waterPlane = 0 Or waterPlane = m_Depth Then
+            GoTo ContinueLoop
+        End If
+        blockProxy.AddLineXYZXYZ startLength, waterPlane, 0, endLength, waterPlane, 0
+ContinueLoop:
+    Next i
+    ' BaseLine
+    blockProxy.AddLineXYZXYZ startLength, 0, 0, endLength, 0, 0
+    ' TopLine
+    blockProxy.AddLineXYZXYZ startLength, m_Depth, 0, endLength, m_Depth, 0
+End Sub
