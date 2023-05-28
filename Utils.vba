@@ -10,7 +10,7 @@ Public Const GInvalidValue As Double = -1
 ' GInf represents infinity value
 Public Const GInf As Double = 655350
 
-Public Const GBlockName_Temp As String = "LZY_TEMP"
+Public Const GBlockName_Temp As String = "LZY_BE_AlRIGHT_TEMP"
 Public Const GBlockName_HalfBreadthPlan As String = "LZY_HalfBreadthPlan"
 Public Const GBlockName_SheerPlan As String = "LZY_SheerPlan"
 Public Const GBlockName_BodyPlan As String = "LZY_BodyPlan"

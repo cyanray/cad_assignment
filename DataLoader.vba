@@ -140,3 +140,51 @@ Sub IntersectWithWaterLines(ByRef offset As ShipOffsets, ByRef Result() As Curve
     Next IdxWaterLine
     tempBlock.Delete
 End Sub
+
+Sub GenerateBodyLinesFromWaterLines(ByRef offset As ShipOffsets, ByRef stationLines As Collection)
+    Dim i As Integer
+    Dim tempBlock As AcadBlock
+    Set tempBlock = ThisDrawing.Blocks.Add(GOrigin.ToArray(), GBlockName_Temp)
+    Dim tempProxy As New AcadBlockProxy: Set tempProxy.Block = tempBlock
+
+    For i = 1 To stationLines.Count
+        Dim sp As AcadLine
+        ' Here we encounter a bug in AutoCAD 2007, 
+        ' the intersection will be failed, 
+        ' if the X of the vertical line is equal to X of the fit point of the spline.
+        ' So, plus 0.0001 to the X of the vertical line.
+        Set sp = tempProxy.AddLineXYZXYZ(stationLines(i) + 0.0001, -GInf, 0, stationLines(i) + 0.0001, GInf, 0)
+        Dim j As Integer
+        Dim bl As CurveSpline
+        Set bl = New CurveSpline
+        For j = 1 To offset.WaterLines.Count
+            Dim wl As AcadSpline
+            Set wl = tempProxy.AddSpline(offset.WaterLines(j).Points, GOrigin, GOrigin)
+            Dim pointsArray
+            pointsArray = sp.IntersectWith(wl, acExtendNone)
+            Dim Points As Point3Collection: Set Points = New Point3Collection
+            Points.AddFromArray pointsArray
+            If Points.Count = 1 And offset.WaterLines(j).Argument<> GInvalidValue Then
+                Dim xval As Double: xval = Points.Item(1).Y
+                If stationLines(i) < 0 Then
+                    xval = -xval
+                End If
+                ' Patch for the base line
+                If offset.WaterLines(j).Argument = 0 Then
+                    Dim step As Double: step = xval / 8
+                    Dim t As Integer
+                    For t = 8 To 1 Step -1
+                        bl.AddXYZ xval - step * t, 0, 0
+                    Next t
+                End If
+                bl.AddXYZ xval, offset.WaterLines(j).Argument, 0
+            End If
+            wl.Delete
+        Next j
+        If bl.Points.Count >= 2 Then
+            offset.AddBodyLine bl
+        End If
+        sp.Delete
+    Next i
+    tempBlock.Delete
+End Sub
