@@ -11,9 +11,10 @@ Public Const GInvalidValue As Double = -1
 Public Const GInf As Double = 655350
 
 Public Const GBlockName_Temp As String = "LZY_BE_AlRIGHT_TEMP"
-Public Const GBlockName_HalfBreadthPlan As String = "LZY_HalfBreadthPlan"
-Public Const GBlockName_SheerPlan As String = "LZY_SheerPlan"
-Public Const GBlockName_BodyPlan As String = "LZY_BodyPlan"
+Public Const GLayerName_Grid As String = "LZY_Grid"
+Public Const GLayerName_HalfBreadthPlan As String = "LZY_HalfBreadthPlan"
+Public Const GLayerName_SheerPlan As String = "LZY_SheerPlan"
+Public Const GLayerName_BodyPlan As String = "LZY_BodyPlan"
 
 
 Sub InitProgram()
@@ -23,9 +24,6 @@ Sub InitProgram()
     ' This program needs to create some blocks.
     ' Check if the reserved block name exists.
     BlockExists GBlockName_Temp
-    BlockExists GBlockName_HalfBreadthPlan
-    BlockExists GBlockName_SheerPlan
-    BlockExists GBlockName_BodyPlan
 End Sub
 
 
@@ -42,18 +40,21 @@ Sub BlockExists(BlockName As String)
     End If
 End Sub
 
-Function Max(a As Variant, b As Variant) As Variant
-    If a > b Then
-        Max = a
-    Else
-        Max = b
-    End If
+Function DrawingArea_Create(BlockName As String) As AcadBlockProxy
+    Dim Block As AcadBlock
+    Set Block = ThisDrawing.Blocks.Add(GOrigin.ToArray(), BlockName)
+    Dim BlockProxy As New AcadBlockProxy
+    Set BlockProxy.Block = Block
+    Set DrawingArea_Create = BlockProxy
 End Function
 
-Function Min(a As Variant, b As Variant) As Variant
-    If a < b Then
-        Min = a
-    Else
-        Min = b
-    End If
-End Function
+Sub DrawingArea_DrawAndClean(BlockName As String, InsertPoint As Point3)
+    Dim Ref As AcadBlockReference
+    Set Ref = ThisDrawing.ModelSpace.InsertBlock(InsertPoint.ToArray(), BlockName, 1, 1, 1, 0)
+    Ref.Explode
+    Ref.Delete
+    Dim Block As AcadBlock
+    Set Block = ThisDrawing.Blocks(BlockName)
+    Block.Delete
+End Sub
+

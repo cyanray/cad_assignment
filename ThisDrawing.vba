@@ -1,16 +1,14 @@
 Sub Main()
-    ' ThisDrawing.PurgeAll ' !!!Warning: FOR DEBUG!!!
+    ThisDrawing.PurgeAll ' !!!Warning: FOR DEBUG!!!
     InitProgram
     
-    ' TODO: Configurable from file
-    Dim FilePath As String
-    FilePath = "E:\test\ShipOFF.txt"
-    Dim NumericScale As Double
-    NumericScale = 1000
+    Dim FilePath As String : FilePath = "E:\test\ShipOFF.txt"
+    Dim NumericScale As Double : NumericScale = 1000
     
     Dim ShipOff As ShipOffsets
     Set ShipOff = ReadDataFromTxtFile(FilePath, NumericScale)
     
+    ' TODO: Configurable from file
     ShipOff.AddSheerPlane 3000
     ShipOff.AddSheerPlane 6000
     ShipOff.AddSheerPlane 9000
@@ -22,40 +20,28 @@ Sub Main()
     ShipOff.HorizontalPadding = 12000
     
     Call GenerateSheerLinesFromWaterLines(ShipOff)
+    Call GenerateBodyLinesFromWaterLines(ShipOff, ShipOff.Stations)
     
-    Dim pt As Point3
-    Set pt = New Point3
+    Dim pt As Point3 : Set pt = New Point3
+    Dim proxy As AcadBlockProxy
 
-    Dim hbpBlock As AcadBlock
-    Set hbpBlock = ThisDrawing.Blocks.Add(GOrigin.ToArray(), GBlockName_HalfBreadthPlan)
-    Dim hbpBlockProxy As New AcadBlockProxy
-    Set hbpBlockProxy.Block = hbpBlock
-    
-    ShipOff.DrawHalfBreadthPlanGrid hbpBlockProxy
-    ShipOff.DrawHalfBreadthPlanWaterLine hbpBlockProxy
-    
-    pt.XYZ 0, 0, 0
-    Dim hbpRef As AcadBlockReference
-    Set hbpRef = ThisDrawing.ModelSpace.InsertBlock(pt.ToArray(), GBlockName_HalfBreadthPlan, 1, 1, 1, 0)
-    hbpRef.Explode
-    hbpRef.Delete
-    hbpBlock.Delete
+    Set proxy = DrawingArea_Create(GBlockName_Temp)
+        pt.XYZ 0, 0, 0
+        ShipOff.DrawHalfBreadthPlanGrid proxy
+        ShipOff.DrawHalfBreadthPlanWaterLine proxy
+    Call DrawingArea_DrawAndClean(GBlockName_Temp, pt)
 
-    Dim spBlock As AcadBlock
-    Set spBlock = ThisDrawing.Blocks.Add(GOrigin.ToArray(), GBlockName_SheerPlan)
-    Dim spBlockProxy As New AcadBlockProxy
-    Set spBlockProxy.Block = spBlock
+    Set proxy = DrawingArea_Create(GBlockName_Temp)
+        pt.XYZ 0, 30000, 0
+        ShipOff.DrawSheerPlanGrid proxy
+        ShipOff.DrawSheerPlanSheerLine proxy
+    Call DrawingArea_DrawAndClean(GBlockName_Temp, pt)
 
-    ShipOff.DrawSheerPlanGrid spBlockProxy
-    ShipOff.DrawSheerPlanSheerLine spBlockProxy
+    Set proxy = DrawingArea_Create(GBlockName_Temp)
+        pt.XYZ 0, 60000, 0
+        ShipOff.DrawBodyPlanGrid proxy
+        ShipOff.DrawBodyPlanBodyLine proxy
+    Call DrawingArea_DrawAndClean(GBlockName_Temp, pt)
 
-    pt.XYZ 0, 30000, 0
-    Dim spRef As AcadBlockReference
-    Set spRef = ThisDrawing.ModelSpace.InsertBlock(pt.ToArray(), GBlockName_SheerPlan, 1, 1, 1, 0)
-    spRef.Explode
-    spRef.Delete
-    spBlock.Delete
-    
 End Sub
-
 
