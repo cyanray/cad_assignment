@@ -1,14 +1,16 @@
 Sub Main()
-    ThisDrawing.PurgeAll ' !!!Warning: FOR DEBUG!!!
-    InitProgram
+    ' ThisDrawing.PurgeAll ' !!!Warning: FOR DEBUG!!!
+    InitProgram "Program Start"
     
-    Dim FilePath As String : FilePath = "E:\test\ShipOFF.txt"
-    Dim NumericScale As Double : NumericScale = 1000
+    ' TODO: Configurable from file
+    Dim FilePath As String
+    FilePath = "E:\test\ShipOFF.txt"
+    Dim NumericScale As Double
+    NumericScale = 1000
     
     Dim ShipOff As ShipOffsets
     Set ShipOff = ReadDataFromTxtFile(FilePath, NumericScale)
     
-    ' TODO: Configurable from file
     ShipOff.AddSheerPlane 3000
     ShipOff.AddSheerPlane 6000
     ShipOff.AddSheerPlane 9000
@@ -22,25 +24,25 @@ Sub Main()
     Call GenerateSheerLinesFromWaterLines(ShipOff)
     Call GenerateBodyLinesFromWaterLines(ShipOff, ShipOff.Stations)
     
-    Dim pt As Point3 : Set pt = New Point3
+    Dim pt As Point3: Set pt = New Point3
     Dim proxy As AcadBlockProxy
-
+    
     Set proxy = DrawingArea_Create(GBlockName_Temp)
         pt.XYZ 0, 0, 0
-        ShipOff.DrawHalfBreadthPlanGrid proxy
-        ShipOff.DrawHalfBreadthPlanWaterLine proxy
+        ShipOff.DrawHalfBreadthPlanGrid proxy, GLayerName_Grid
+        ShipOff.DrawHalfBreadthPlanWaterLine proxy, GLayerName_HalfBreadthPlan
     Call DrawingArea_DrawAndClean(GBlockName_Temp, pt)
 
     Set proxy = DrawingArea_Create(GBlockName_Temp)
         pt.XYZ 0, 30000, 0
-        ShipOff.DrawSheerPlanGrid proxy
-        ShipOff.DrawSheerPlanSheerLine proxy
+        ShipOff.DrawSheerPlanGrid proxy, GLayerName_Grid
+        ShipOff.DrawSheerPlanSheerLine proxy, GLayerName_SheerPlan
     Call DrawingArea_DrawAndClean(GBlockName_Temp, pt)
 
     Set proxy = DrawingArea_Create(GBlockName_Temp)
         pt.XYZ 0, 60000, 0
-        ShipOff.DrawBodyPlanGrid proxy
-        ShipOff.DrawBodyPlanBodyLine proxy
+        ShipOff.DrawBodyPlanGrid proxy, GLayerName_Grid
+        ShipOff.DrawBodyPlanBodyLine proxy, GLayerName_BodyPlan
     Call DrawingArea_DrawAndClean(GBlockName_Temp, pt)
 
 End Sub

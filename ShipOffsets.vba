@@ -121,16 +121,14 @@ Public Sub AddSheerPlane(sheerPlane As Double)
     m_SheerPlane.Add sheerPlane
 End Sub
 
-Public Sub DrawHalfBreadthPlanWaterLine(blockProxy As AcadBlockProxy)
+Public Sub DrawHalfBreadthPlanWaterLine(blockProxy As AcadBlockProxy, Optional LayerName As String = "0")
     Dim i As Integer
     For i = 1 To m_WaterLines.Count
-        Dim ln As AcadSpline
-        Set ln = blockProxy.AddSpline(m_WaterLines(i).Points, GOrigin, GOrigin)
-        ln.color = acCyan
+        blockProxy.AddSpline m_WaterLines(i).Points, GOrigin, GOrigin, LayerName
     Next i
 End Sub
 
-Public Sub DrawHalfBreadthPlanGrid(blockProxy As AcadBlockProxy)
+Public Sub DrawHalfBreadthPlanGrid(blockProxy As AcadBlockProxy, Optional LayerName As String = "0")
     ' Throw exception if m_Breadth invalid
     If m_Breadth = GInvalidValue Then
         Err.Raise 10001, "ShipOffsets", "m_Breadth is invalid."
@@ -146,23 +144,23 @@ Public Sub DrawHalfBreadthPlanGrid(blockProxy As AcadBlockProxy)
     Dim i As Integer
     For i = 1 To m_Stations.Count
         Dim sta As Station: Set sta = m_Stations(i)
-        blockProxy.AddLineXYZXYZ sta.StationOffset, 0, 0, sta.StationOffset, HalfBreadth, 0
+        blockProxy.AddLineXYZXYZ sta.StationOffset, 0, 0, sta.StationOffset, HalfBreadth, 0, LayerName
     Next i
     For i = 1 To m_SheerPlane.Count
         Dim sheerPlane As Double: sheerPlane = m_SheerPlane(i)
         If sheerPlane = 0 Or sheerPlane = HalfBreadth Then
             GoTo ContinueLoop
         End If
-        blockProxy.AddLineXYZXYZ startLength, sheerPlane, 0, endLength, sheerPlane, 0
+        blockProxy.AddLineXYZXYZ startLength, sheerPlane, 0, endLength, sheerPlane, 0, LayerName
 ContinueLoop:
     Next i
     ' BaseLine
-    blockProxy.AddLineXYZXYZ startLength, 0, 0, endLength, 0, 0
+    blockProxy.AddLineXYZXYZ startLength, 0, 0, endLength, 0, 0, LayerName
     ' TopLine
-    blockProxy.AddLineXYZXYZ startLength, HalfBreadth, 0, endLength, HalfBreadth, 0
+    blockProxy.AddLineXYZXYZ startLength, HalfBreadth, 0, endLength, HalfBreadth, 0, LayerName
 End Sub
 
-Public Sub DrawSheerPlanSheerLine(blockProxy As AcadBlockProxy)
+Public Sub DrawSheerPlanSheerLine(blockProxy As AcadBlockProxy, Optional LayerName As String = "0")
     Dim i As Integer
     For i = 1 To m_SheerLines.Count
         Dim ln As AcadSpline
@@ -196,11 +194,11 @@ Public Sub DrawSheerPlanSheerLine(blockProxy As AcadBlockProxy)
         Else
             Set ln = blockProxy.AddSpline(slOrigin.Points, GOrigin, GOrigin)
         End If
-        ln.color = acRed
+        ln.Layer = LayerName
     Next i
 End Sub
 
-Public Sub DrawSheerPlanGrid(blockProxy As AcadBlockProxy)
+Public Sub DrawSheerPlanGrid(blockProxy As AcadBlockProxy, Optional LayerName As String = "0")
     ' Throw exception if m_Depth invalid
     If m_Depth = GInvalidValue Then
         Err.Raise 10001, "ShipOffsets", "m_Depth is invalid."
@@ -216,32 +214,30 @@ Public Sub DrawSheerPlanGrid(blockProxy As AcadBlockProxy)
     Dim i As Integer
     For i = 1 To m_Stations.Count
         Dim sta As Station: Set sta = m_Stations(i)
-        blockProxy.AddLineXYZXYZ sta.StationOffset, 0, 0, sta.StationOffset, m_Depth, 0
+        blockProxy.AddLineXYZXYZ sta.StationOffset, 0, 0, sta.StationOffset, m_Depth, 0, LayerName
     Next i
     For i = 1 To m_WaterPlane.Count
         Dim waterPlane As Double: waterPlane = m_WaterPlane(i)
         If waterPlane = 0 Or waterPlane = m_Depth Then
             GoTo ContinueLoop
         End If
-        blockProxy.AddLineXYZXYZ startLength, waterPlane, 0, endLength, waterPlane, 0
+        blockProxy.AddLineXYZXYZ startLength, waterPlane, 0, endLength, waterPlane, 0, LayerName
 ContinueLoop:
     Next i
     ' BaseLine
-    blockProxy.AddLineXYZXYZ startLength, 0, 0, endLength, 0, 0
+    blockProxy.AddLineXYZXYZ startLength, 0, 0, endLength, 0, 0, LayerName
     ' TopLine
-    blockProxy.AddLineXYZXYZ startLength, m_Depth, 0, endLength, m_Depth, 0
+    blockProxy.AddLineXYZXYZ startLength, m_Depth, 0, endLength, m_Depth, 0, LayerName
 End Sub
 
-Public Sub DrawBodyPlanBodyLine(blockProxy As AcadBlockProxy)
+Public Sub DrawBodyPlanBodyLine(blockProxy As AcadBlockProxy, Optional LayerName As String = "0")
     Dim i As Integer
     For i = 1 To m_BodyLines.Count
-        Dim ln As AcadSpline
-        Set ln = blockProxy.AddSpline(m_BodyLines(i).Points, GOrigin, GOrigin)
-        ln.color = acMagenta
+        blockProxy.AddSpline m_BodyLines(i).Points, GOrigin, GOrigin, LayerName
     Next i
 End Sub
 
-Public Sub DrawBodyPlanGrid(blockProxy As AcadBlockProxy)
+Public Sub DrawBodyPlanGrid(blockProxy As AcadBlockProxy, Optional LayerName As String = "0")
     ' Throw exception if m_Depth or m_Breadth invalid
     If m_Depth = GInvalidValue Then
         Err.Raise 10001, "ShipOffsets", "m_Depth is invalid."
@@ -259,18 +255,18 @@ Public Sub DrawBodyPlanGrid(blockProxy As AcadBlockProxy)
     Dim i As Integer
     For i = 1 To m_WaterPlane.Count
         Dim waterPlane As Double: waterPlane = m_WaterPlane(i)
-        blockProxy.AddLineXYZXYZ leftOffset, waterPlane, 0, rightOffset, waterPlane, 0
+        blockProxy.AddLineXYZXYZ leftOffset, waterPlane, 0, rightOffset, waterPlane, 0, LayerName
     Next i
     For i = 1 To m_SheerPlane.Count
         Dim sheerPlane As Double: sheerPlane = m_SheerPlane(i)
-        blockProxy.AddLineXYZXYZ sheerPlane, 0, 0, sheerPlane, Depth, 0
-        blockProxy.AddLineXYZXYZ -sheerPlane, 0, 0, -sheerPlane, Depth, 0
+        blockProxy.AddLineXYZXYZ sheerPlane, 0, 0, sheerPlane, Depth, 0, LayerName
+        blockProxy.AddLineXYZXYZ -sheerPlane, 0, 0, -sheerPlane, Depth, 0, LayerName
     Next i
     ' BaseLine
-    blockProxy.AddLineXYZXYZ leftOffset, 0, 0, rightOffset, 0, 0
-    blockProxy.AddLineXYZXYZ 0,0,0, 0, Depth, 0
-    ' blockProxy.AddLineXYZXYZ -HalfBreadth, Depth, 0, HalfBreadth, Depth, 0
-    blockProxy.AddLineXYZXYZ -HalfBreadth, 0, 0, -HalfBreadth, Depth, 0
-    blockProxy.AddLineXYZXYZ HalfBreadth, 0, 0, HalfBreadth, Depth, 0
+    blockProxy.AddLineXYZXYZ leftOffset, 0, 0, rightOffset, 0, 0, LayerName
+    blockProxy.AddLineXYZXYZ 0,0,0, 0, Depth, 0, LayerName
+    ' blockProxy.AddLineXYZXYZ -HalfBreadth, Depth, 0, HalfBreadth, Depth, 0, LayerName
+    blockProxy.AddLineXYZXYZ -HalfBreadth, 0, 0, -HalfBreadth, Depth, 0, LayerName
+    blockProxy.AddLineXYZXYZ HalfBreadth, 0, 0, HalfBreadth, Depth, 0, LayerName
 End Sub
 

@@ -16,14 +16,20 @@ Public Const GLayerName_HalfBreadthPlan As String = "LZY_HalfBreadthPlan"
 Public Const GLayerName_SheerPlan As String = "LZY_SheerPlan"
 Public Const GLayerName_BodyPlan As String = "LZY_BodyPlan"
 
-
-Sub InitProgram()
+' HelloMessage is to avoid this subroutine appearing in the execution panel
+Sub InitProgram(HelloMessage As String)
+    Debug.Print HelloMessage
     ' Initializes Global Variables
     Set GDrawing.Block = ThisDrawing.ModelSpace
     Set GOrigin = New Point3
     ' This program needs to create some blocks.
     ' Check if the reserved block name exists.
     BlockExists GBlockName_Temp
+    ' Create layers
+    CreateLayer GLayerName_Grid, acWhite
+    CreateLayer GLayerName_HalfBreadthPlan, acCyan
+    CreateLayer GLayerName_SheerPlan, acRed
+    CreateLayer GLayerName_BodyPlan, acMagenta
 End Sub
 
 
@@ -38,6 +44,12 @@ Sub BlockExists(BlockName As String)
     If Exists Then
         Err.Raise 20001, "Utils", "Block '" & BlockName & "' is exists."
     End If
+End Sub
+
+Sub CreateLayer(LayerName As String, Color As AcColor)
+    Dim Layer As AcadLayer
+    Set Layer = ThisDrawing.Layers.Add(LayerName)
+    Layer.Color = Color
 End Sub
 
 Function DrawingArea_Create(BlockName As String) As AcadBlockProxy
