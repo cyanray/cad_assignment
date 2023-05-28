@@ -10,8 +10,9 @@ Public Const GInvalidValue As Double = -1
 ' GInf represents infinity value
 Public Const GInf As Double = 655350
 
-Public Const GBlockName_Temp As String = "LZY_BE_AlRIGHT_TEMP"
+Public Const GBlockName_Temp As String = "LZY_Lamour_Est_Bleu__"
 Public Const GLayerName_Grid As String = "LZY_Grid"
+Public Const GLayerName_Text As String = "LZY_Text"
 Public Const GLayerName_HalfBreadthPlan As String = "LZY_HalfBreadthPlan"
 Public Const GLayerName_SheerPlan As String = "LZY_SheerPlan"
 Public Const GLayerName_BodyPlan As String = "LZY_BodyPlan"
@@ -27,6 +28,7 @@ Sub InitProgram(HelloMessage As String)
     BlockExists GBlockName_Temp
     ' Create layers
     CreateLayer GLayerName_Grid, acWhite
+    CreateLayer GLayerName_Text, acWhite
     CreateLayer GLayerName_HalfBreadthPlan, acCyan
     CreateLayer GLayerName_SheerPlan, acRed
     CreateLayer GLayerName_BodyPlan, acMagenta

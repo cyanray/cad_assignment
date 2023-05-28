@@ -20,6 +20,8 @@ Private m_Depth As Double
 
 Private m_HorizontalPadding As Double
 
+Private m_TextHeight As Double
+
 Private Sub Class_Initialize()
     Set m_WaterLines = New Collection
     Set m_SheerLines = New Collection
@@ -31,6 +33,14 @@ Private Sub Class_Initialize()
     m_Depth = GInvalidValue
     HorizontalPadding = 0
 End Sub
+
+Private Property Get HorizontalLineLeft() As double
+    HorizontalLineLeft = m_Stations(1).StationOffset - m_HorizontalPadding
+End Property
+
+Private Property Get HorizontalLineRight() As double
+    HorizontalLineRight = m_Stations(m_Stations.Count).StationOffset + m_HorizontalPadding
+End Property
 
 Public Property Get HalfBreadth() As Double
     HalfBreadth = m_Breadth / 2
@@ -58,6 +68,14 @@ End Property
 
 Public Property Let HorizontalPadding(ByVal Value As Double)
     m_HorizontalPadding = Value
+End Property
+
+Public Property Get TextHeight() As Double
+    TextHeight = m_TextHeight
+End Property
+
+Public Property Let TextHeight(ByVal Value As Double)
+    m_TextHeight = Value
 End Property
 
 Public Property Get WaterLines() As Collection
@@ -270,3 +288,103 @@ Public Sub DrawBodyPlanGrid(blockProxy As AcadBlockProxy, Optional LayerName As 
     blockProxy.AddLineXYZXYZ HalfBreadth, 0, 0, HalfBreadth, Depth, 0, LayerName
 End Sub
 
+Public Sub DrawHalfBreadthPlanText(BlockProxy As AcadBlockProxy, Optional LayerName As String = "0")
+    Dim pt As Point3
+    Dim i As Integer
+    For i = 1 To m_Stations.Count
+        Dim sta As Station: Set sta = m_Stations(i)
+        Set pt = New Point3
+        pt.XYZ sta.StationOffset, 0, 0
+        BlockProxy.AddText CStr(Abs(sta.StationNumber)), pt, TextHeight, acAlignmentTopCenter, LayerName
+    Next i
+    For i = 1 To m_SheerPlane.Count
+        Dim sheerPlane As Double: sheerPlane = m_SheerPlane(i)
+        ' skip sheer plane at 0
+        If sheerPlane = 0 Then
+            GoTo ContinueLoop
+        End If
+        Set pt = New Point3
+        pt.XYZ HorizontalLineLeft, sheerPlane, 0
+        BlockProxy.AddText CStr(Abs(sheerPlane))&"BL", pt, TextHeight, acAlignmentLeft, LayerName
+        pt.XYZ HorizontalLineRight, sheerPlane, 0
+        BlockProxy.AddText CStr(Abs(sheerPlane))&"BL", pt, TextHeight, acAlignmentRight, LayerName
+ContinueLoop:
+    Next i
+    'Base line
+    pt.XYZ HorizontalLineLeft, 0, 0
+    BlockProxy.AddText "BL", pt, TextHeight, acAlignmentLeft, LayerName
+    pt.XYZ HorizontalLineRight, 0, 0
+    BlockProxy.AddText "BL", pt, TextHeight, acAlignmentRight, LayerName
+End Sub
+
+Public Sub DrawSheerPlanText(BlockProxy As AcadBlockProxy, Optional LayerName As String = "0")
+    Dim pt As Point3
+    Dim i As Integer
+    For i = 1 To m_Stations.Count
+        Dim sta As Station: Set sta = m_Stations(i)
+        Set pt = New Point3
+        pt.XYZ sta.StationOffset, 0, 0
+        BlockProxy.AddText CStr(Abs(sta.StationNumber)), pt, TextHeight, acAlignmentTopCenter, LayerName
+    Next i
+    For i = 1 To m_WaterPlane.Count
+        Dim waterPlane As Double: waterPlane = m_WaterPlane(i)
+        ' skip water plane = 0
+        If waterPlane = 0 Then
+            GoTo ContinueLoop
+        End If
+        Set pt = New Point3
+        pt.XYZ HorizontalLineLeft, waterPlane, 0
+        BlockProxy.AddText CStr(Abs(waterPlane))&"WL", pt, TextHeight, acAlignmentLeft, LayerName
+        pt.XYZ HorizontalLineRight, waterPlane, 0
+        BlockProxy.AddText CStr(Abs(waterPlane))&"WL", pt, TextHeight, acAlignmentRight, LayerName
+ContinueLoop:
+    Next i
+    'Base line
+    pt.XYZ HorizontalLineLeft, 0, 0
+    BlockProxy.AddText "BL", pt, TextHeight, acAlignmentLeft, LayerName
+    pt.XYZ HorizontalLineRight, 0, 0
+    BlockProxy.AddText "BL", pt, TextHeight, acAlignmentRight, LayerName
+End Sub
+
+Public Sub DrawBodyPlanText(BlockProxy As AcadBlockProxy, Optional LayerName As String = "0")
+    Dim pt As Point3
+    Dim i As Integer
+
+    Dim leftOffset As Double: leftOffset = -HalfBreadth - m_HorizontalPadding
+    Dim rightOffset As Double: rightOffset = HalfBreadth + m_HorizontalPadding
+
+    For i = 1 To m_SheerPlane.Count
+        Dim sheerPlane As Double: sheerPlane = m_SheerPlane(i)
+        ' skip sheer plane at 0
+        If sheerPlane = 0 Then
+            GoTo ContinueLoop1
+        End If
+        Set pt = New Point3
+        pt.XYZ sheerPlane, 0, 0
+        BlockProxy.AddText CStr(Abs(sheerPlane)), pt, TextHeight, acAlignmentTopCenter, LayerName
+        pt.XYZ -sheerPlane, 0, 0
+        BlockProxy.AddText CStr(Abs(sheerPlane)), pt, TextHeight, acAlignmentTopCenter, LayerName
+ContinueLoop1:
+    Next i
+
+    For i = 1 To m_WaterPlane.Count
+        Dim waterPlane As Double: waterPlane = m_WaterPlane(i)
+        ' skip water plane = 0
+        If waterPlane = 0 Then
+            GoTo ContinueLoop2
+        End If
+        Set pt = New Point3
+        pt.XYZ leftOffset, waterPlane, 0
+        BlockProxy.AddText CStr(Abs(waterPlane))&"WL", pt, TextHeight, acAlignmentLeft, LayerName
+        pt.XYZ rightOffset, waterPlane, 0
+        BlockProxy.AddText CStr(Abs(waterPlane))&"WL", pt, TextHeight, acAlignmentRight, LayerName
+ContinueLoop2:
+    Next i
+    ' Base line
+    pt.XYZ 0,0,0
+    BlockProxy.AddText "CL", pt, TextHeight, acAlignmentTopCenter, LayerName
+    pt.XYZ leftOffset, 0, 0
+    BlockProxy.AddText "BL", pt, TextHeight, acAlignmentLeft, LayerName
+    pt.XYZ rightOffset, 0, 0
+    BlockProxy.AddText "BL", pt, TextHeight, acAlignmentRight, LayerName
+End Sub

@@ -24,3 +24,12 @@ Public Function AddSpline(Points As Point3Collection, StartTangent As Point3, En
     Set AddSpline = m_Block.AddSpline(Points.ToArray(), StartTangent.ToArray(), EndTangent.ToArray())
     AddSpline.Layer = LayerName
 End Function
+
+Public Function AddText(Content As String, InsertionPoint As Point3, Height As Double, Optional Alignment As AcAlignment = acAlignmentLeft, Optional LayerName As String = "0")
+    Set AddText = m_Block.AddText(Content, InsertionPoint.ToArray(), Height)
+    AddText.Layer = LayerName
+    AddText.Alignment = Alignment
+    If Alignment <> acAlignmentLeft Then
+        AddText.TextAlignmentPoint = InsertionPoint.ToArray()
+    End If
+End Function
